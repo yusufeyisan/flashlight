@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_torch/flutter_torch.dart';
 
 void main() {
   runApp(MyApp());
@@ -10,10 +12,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flashligth',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(fontFamily: "Yeon Sung"),
       home: MyHomePage(title: 'Flashligth'),
     );
   }
@@ -28,6 +28,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final Color textColor = new Color.fromARGB(255, 112, 112, 112);
   final Color backgroundColor = new Color.fromARGB(255, 255, 205, 41);
   final Color circleSwitchBackgroundColor =
       new Color.fromARGB(255, 255, 205, 41);
@@ -44,8 +45,23 @@ class _MyHomePageState extends State<MyHomePage> {
   static const buttonTitleOff = "OFF";
 
   @override
+  void initState() {
+    super.initState();
+    initTorchState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: backgroundColor,
+        shadowColor: switchHubShadowColor,
+        title: Text(
+          "Flashlight",
+          style: TextStyle(color: textColor, fontSize: 30),
+        ),
+        centerTitle: true,
+      ),
       backgroundColor: backgroundColor,
       body: Center(
         child: buildswitchHubContainer(),
@@ -58,9 +74,11 @@ class _MyHomePageState extends State<MyHomePage> {
       switch (button) {
         case buttonTitleOff:
           switchHubBorderOffset = switchHubBorderOffsetOFF;
+          FlutterTorch.turnOff();
           break;
         case buttonTitleOn:
           switchHubBorderOffset = switchHubBorderOffsetON;
+          FlutterTorch.turnOn();
           break;
         default:
       }
@@ -121,6 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
+              color: textColor,
             ),
           ),
         ),
@@ -131,5 +150,30 @@ class _MyHomePageState extends State<MyHomePage> {
         color: circleSwitchBackgroundColor,
       ),
     );
+  }
+
+  // Platform messages are asynchronous, so we initialize in an async method.
+  Future<void> initTorchState() async {
+    bool deviceHasLamb = false;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      deviceHasLamb = await FlutterTorch.hasLamp;
+
+      print("ALREADY_OPEN ==>" + deviceHasLamb.toString());
+    } on PlatformException {
+      deviceHasLamb = false;
+    }
+
+    setState(() {
+      if (deviceHasLamb) {
+        switchHubBorderOffset = switchHubBorderOffsetOFF;
+        FlutterTorch.turnOff();
+      }
+    });
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) return;
   }
 }
