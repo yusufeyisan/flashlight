@@ -158,8 +158,6 @@ class _MyHomePageState extends State<MyHomePage> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       deviceHasLamb = await FlutterTorch.hasLamp;
-
-      print("ALREADY_OPEN ==>" + deviceHasLamb.toString());
     } on PlatformException {
       deviceHasLamb = false;
     }
